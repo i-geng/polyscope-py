@@ -15,6 +15,7 @@ pybind11_add_module(polyscope_bindings
   src/cpp/core.cpp
   src/cpp/surface_mesh.cpp
   src/cpp/point_cloud.cpp
+  src/cpp/point_light.cpp
   src/cpp/curve_network.cpp
   src/cpp/volume_mesh.cpp
   src/cpp/volume_grid.cpp

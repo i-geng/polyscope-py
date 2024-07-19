@@ -12,6 +12,7 @@
 #include "polyscope/messages.h"
 #include "polyscope/pick.h"
 #include "polyscope/point_cloud.h"
+#include "polyscope/point_light.h"
 #include "polyscope/polyscope.h"
 #include "polyscope/surface_mesh.h"
 #include "polyscope/types.h"
@@ -39,6 +40,7 @@ void bind_floating_quantities(py::module& m);
 void bind_implicit_helpers(py::module& m);
 void bind_managed_buffer(py::module& m);
 void bind_imgui(py::module& m);
+void bind_point_light(py::module& m);
 
 // Signal handler (makes ctrl-c work, etc)
 void checkSignals() {
@@ -105,6 +107,28 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     }, "Take a screenshot to buffer");
   m.def("named_screenshot", overload_cast_<std::string, bool>()(&ps::screenshot), "Take a screenshot");
   m.def("set_screenshot_extension", [](std::string x) { ps::options::screenshotExtension = x; });
+
+  // === Rasterize tetra file
+  m.def("rasterize_tetra", overload_cast_<>()(&ps::rasterizeTetra), "Rasterize a tetracolor image");
+  m.def("named_rasterize_tetra", overload_cast_<std::string>()(&ps::rasterizeTetra), 
+      "Rasterize a tetracolor image");
+
+  // === Write video files
+  m.def("open_video_file", [](std::string filename, int fps) {
+    FILE* fd = ps::openVideoFile(filename, fps);
+    // Wrap the FILE* in a capsule
+    return py::capsule(fd);
+  });
+
+  m.def("write_video_frame", [](py::capsule file_capsule, bool transparent_bg) {
+    FILE* fd = reinterpret_cast<FILE*>(file_capsule.get_pointer());
+    ps::writeVideoFrame(fd, transparent_bg);
+  });
+
+  m.def("close_video_file", [](py::capsule file_capsule) {
+    FILE* fd = reinterpret_cast<FILE*>(file_capsule.get_pointer());
+    ps::closeVideoFile(fd);
+  });
 
   // === Small options
   m.def("set_program_name", [](std::string x) { ps::options::programName = x; });
@@ -260,6 +284,10 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   py::class_<ps::Structure>(m, "Structure")
    .def_readonly("name", &ps::Structure::name) 
   ;
+
+  // === Light
+  // this is the generic light class, subtypes get bound in their respective files
+  py::class_<ps::Light>(m, "Light");
   
   // === Groups
  
@@ -525,6 +553,7 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   bind_camera_view(m);
   bind_managed_buffer(m);
   bind_imgui(m);
+  bind_point_light(m);
 
 }
 

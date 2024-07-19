@@ -220,6 +220,12 @@ py::class_<ColorQ> bindColorQuantity(py::module& m, std::string name) {
   return bindQuantity<ColorQ>(m, name.c_str());
 }
 
+// Add common bindings for all tetracolor quantities
+template <typename TetracolorQ>
+py::class_<TetracolorQ> bindTetracolorQuantity(py::module& m, std::string name) {
+  return bindQuantity<TetracolorQ>(m, name.c_str());
+}
+
 // Add common bindings for all vector quantities
 template <typename VectorQ>
 py::class_<VectorQ> bindVectorQuantity(py::module& m, std::string name) {
@@ -245,4 +251,21 @@ void addImageQuantityBindings(py::class_<ImageQ>& imageQ) {
 
   imageQ.def("set_transparency", &ImageQ::setTransparency);
   imageQ.def("get_transparency", &ImageQ::getTransparency);
+}
+
+// Add common bindings for lights
+template <typename LightT>
+py::class_<LightT> bindLight(py::module& m, std::string name) {
+  
+  py::class_<LightT, ps::Light> light(m, name.c_str());
+
+  // light basis
+  light.def("get_name", [](LightT& light) { return light.getLightName(); }, "Get the name")
+    .def("set_enabled", &LightT::setEnabled, "Set the light to enabled or not")
+    .def("is_enabled", &LightT::isEnabled, "Check if the light is enabled")
+
+    .def("set_position", [](LightT& light, Eigen::Vector3f T) {light.setLightPosition(eigen2glm(T)); }, "Set the light position")
+    .def("set_color", [](LightT& light, Eigen::Vector3f T) {light.setLightColor(eigen2glm(T)); }, "Set the light color");
+
+  return light;
 }

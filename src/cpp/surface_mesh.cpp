@@ -32,6 +32,10 @@ void bind_surface_mesh(py::module& m) {
   bindColorQuantity<ps::SurfaceFaceColorQuantity>(m, "SurfaceFaceColorQuantity");
   bindColorQuantity<ps::SurfaceTextureColorQuantity>(m, "SurfaceTextureColorQuantity");
 
+  // Tetracolor quantities
+  bindTetracolorQuantity<ps::SurfaceVertexTetracolorQuantity>(m, "SurfaceVertexTetracolorQuantity");
+  bindTetracolorQuantity<ps::SurfaceFaceTetracolorQuantity>(m, "SurfaceFaceTetracolorQuantity");
+
   // Parameterization quantities
   py::class_<ps::SurfaceCornerParameterizationQuantity>(m, "SurfaceCornerParameterizationQuantity")
       .def("set_enabled", &ps::SurfaceCornerParameterizationQuantity::setEnabled, "Set enabled")
@@ -134,6 +138,12 @@ void bind_surface_mesh(py::module& m) {
                &ps::SurfaceMesh::addTextureColorQuantity<Eigen::MatrixXf>),
            "Add a color function from a texture map", py::arg("name"), py::arg("param_name"), py::arg("dimX"),
            py::arg("dimY"), py::arg("colors"), py::arg("image_origin"), py::return_value_policy::reference)
+
+      // Tetracolors
+      .def("add_vertex_tetracolor_quantity", &ps::SurfaceMesh::addVertexTetracolorQuantity<Eigen::MatrixXf>,
+           "Add a tetracolor value at vertices", py::return_value_policy::reference)
+      .def("add_face_tetracolor_quantity", &ps::SurfaceMesh::addFaceTetracolorQuantity<Eigen::MatrixXf>,
+           "Add a tetracolor value at faces", py::return_value_policy::reference)
 
       // Distance
       .def("add_vertex_distance_quantity", &ps::SurfaceMesh::addVertexDistanceQuantity<Eigen::VectorXf>,

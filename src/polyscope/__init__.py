@@ -13,3 +13,5 @@ from polyscope.volume_mesh import *
 from polyscope.volume_grid import *
 from polyscope.camera_view import *
 from polyscope.global_floating_quantity_structure import *
+from polyscope.point_light import *
+

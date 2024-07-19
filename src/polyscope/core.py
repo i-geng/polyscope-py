@@ -77,6 +77,24 @@ def screenshot_to_buffer(transparent_bg=True, vertical_flip=True):
         buff = buff[::-1,:,:]
     return buff
 
+
+### Rasterize tetra file
+def rasterize_tetra(filename=None):
+    if filename is None:
+        psb.rasterize_tetra()
+    else:
+        psb.named_rasterize_tetra(filename)
+
+### Write video files
+def open_video_file(filename, fps=60):
+    return psb.open_video_file(filename, fps)
+
+def write_video_frame(fd, transparent_bg=True):
+    psb.write_video_frame(fd, transparent_bg)
+
+def close_video_file(fd):
+    psb.close_video_file(fd)
+
 ### Small options
 
 def set_program_name(name):
