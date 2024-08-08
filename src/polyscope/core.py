@@ -79,11 +79,11 @@ def screenshot_to_buffer(transparent_bg=True, vertical_flip=True):
 
 
 ### Rasterize tetra file
-def rasterize_tetra(filename=None):
+def rasterize_tetra(filename=None, save_image_mode='RG1G2B'):
     if filename is None:
-        psb.rasterize_tetra()
+        psb.rasterize_tetra(str_to_save_image_mode(save_image_mode))
     else:
-        psb.named_rasterize_tetra(filename)
+        psb.named_rasterize_tetra(filename, str_to_save_image_mode(save_image_mode))
 
 ### Write video files
 def open_video_file(filename, fps=60):
@@ -713,6 +713,19 @@ def str_to_ground_plane_mode(s):
 
     if s not in d:
         raise ValueError("Bad ground plane mode specifier '{}', should be one of [{}]".format(s, 
+            ",".join(["'{}'".format(x) for x in d.keys()])))
+
+    return d[s]
+
+def str_to_save_image_mode(s):
+    d = {
+        "RG1G2B" : psb.SaveImageMode.RG1G2B,
+        "LMS_Q" : psb.SaveImageMode.LMS_Q,
+        "four_gray" : psb.SaveImageMode.four_gray
+    }
+
+    if s not in d:
+        raise ValueError("Bad save image mode specifier '{}', should be one of [{}]".format(s,
             ",".join(["'{}'".format(x) for x in d.keys()])))
 
     return d[s]

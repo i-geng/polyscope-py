@@ -109,9 +109,8 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_screenshot_extension", [](std::string x) { ps::options::screenshotExtension = x; });
 
   // === Rasterize tetra file
-  m.def("rasterize_tetra", overload_cast_<>()(&ps::rasterizeTetra), "Rasterize a tetracolor image");
-  m.def("named_rasterize_tetra", overload_cast_<std::string>()(&ps::rasterizeTetra), 
-      "Rasterize a tetracolor image");
+  m.def("rasterize_tetra", overload_cast_<ps::SaveImageMode>()(&ps::rasterizeTetra), "Rasterize a tetracolor image");
+  m.def("named_rasterize_tetra", overload_cast_<std::string, ps::SaveImageMode>()(&ps::rasterizeTetra), "Rasterize a tetracolor image");
 
   // === Write video files
   m.def("open_video_file", [](std::string filename, int fps) {
@@ -511,6 +510,12 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     .value("texture2d", ps::DeviceBufferType::Texture2d)
     .value("texture3d", ps::DeviceBufferType::Texture3d)
     .export_values(); 
+
+  py::enum_<ps::SaveImageMode>(m, "SaveImageMode")
+    .value("RG1G2B", ps::SaveImageMode::RG1G2B)
+    .value("LMS_Q", ps::SaveImageMode::LMS_Q)
+    .value("four_gray", ps::SaveImageMode::FourGray)
+    .export_values();
 
   // === Mini bindings for a little bit of glm
   py::class_<glm::vec2>(m, "glm_vec2").
