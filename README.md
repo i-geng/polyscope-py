@@ -1,29 +1,35 @@
 # polyscope-py
-Python bindings for Polyscope. https://polyscope.run/py
+Python bindings for Polyscope - Chromalab Version. https://polyscope.run/py
 
-[![Linux](https://github.com/nmwsharp/polyscope-py/workflows/Test%20Linux/badge.svg)](https://github.com/nmwsharp/polyscope-py/actions)
-[![macOS](https://github.com/nmwsharp/polyscope-py/workflows/Test%20macOS/badge.svg)](https://github.com/nmwsharp/polyscope-py/actions)
-[![Windows](https://github.com/nmwsharp/polyscope-py/workflows/Test%20Windows/badge.svg)](https://github.com/nmwsharp/polyscope-py/actions)
-[![PyPI](https://img.shields.io/pypi/v/polyscope?style=plastic)](https://pypi.org/project/polyscope/)
-[![Conda](https://img.shields.io/conda/v/conda-forge/polyscope)](https://anaconda.org/conda-forge/polyscope)
 
-This library is a python wrapper and deployment system. The core library lives at https://github.com/nmwsharp/polyscope. See documentation at https://polyscope.run/py.
+This library is a python wrapper and deployment system. The core library lives at [TODO link here]()
 
 To contribute, check out the [instructions here](https://polyscope.run/about/contributing/).
 
-### Installation
+### Installation (for now before Irene puts it on PyPI)
 
+Uninstall current version of polyscope from current virtual environment:
 ```
-python -m pip install polyscope
-```
-
-or
-
-```
-conda install -c conda-forge polyscope
+pip uninstall polyscope
 ```
 
-polyscope-py should work out-of-the-box on any combination of Python 3.5-3.12 and Linux/macOS/Windows. Your graphics hardware must support OpenGL >= 3.3 core profile.
+Local installation. Haven't put this version on PyPI yet, since it seems like uploading a 
+new version could take over an hour. 
+```
+git clone --recurse-submodules git@github.com:i-geng/polyscope-py.git
+```
+
+From the root polyscope-py directory, need to build the C++ source:
+```
+mkdir build; cd build
+cmake ../
+make
+```
+Back in the root polyscope-py directory:
+```
+pip install .
+```
+
 
 ## For developers
 
