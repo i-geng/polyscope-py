@@ -28,6 +28,9 @@ void bind_point_cloud(py::module& m) {
   // Color quantities
   bindColorQuantity<ps::PointCloudColorQuantity>(m, "PointCloudColorQuantity");
 
+  // Tetracolor quantities
+  bindTetracolorQuantity<ps::PointCloudTetracolorQuantity>(m, "PointCloudTetracolorQuantity");
+
   // Vector quantities
   bindVectorQuantity<ps::PointCloudVectorQuantity>(m, "PointCloudVectorQuantity");
 
@@ -61,6 +64,8 @@ void bind_point_cloud(py::module& m) {
         
     // quantities
     .def("add_color_quantity", &ps::PointCloud::addColorQuantity<Eigen::MatrixXf>, "Add a color function at points",
+        py::arg("name"), py::arg("values"), py::return_value_policy::reference)
+    .def("add_tetracolor_quantity", &ps::PointCloud::addTetracolorQuantity<Eigen::MatrixXf>, "Add a tetracolor function at points",
         py::arg("name"), py::arg("values"), py::return_value_policy::reference)
     .def("add_scalar_quantity", &ps::PointCloud::addScalarQuantity<Eigen::VectorXf>, "Add a scalar function at points",
         py::arg("name"), py::arg("values"), py::arg("data_type")=ps::DataType::STANDARD, py::return_value_policy::reference)

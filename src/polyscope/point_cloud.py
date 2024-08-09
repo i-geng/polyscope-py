@@ -111,6 +111,17 @@ class PointCloud(Structure):
         process_color_args(self, q, color_args)
         check_all_args_processed(self, q, color_args)
     
+    # Tetracolor
+    def add_tetracolor_quantity(self, name, values, **tetracolor_args):
+        if len(values.shape) != 2 or values.shape[0] != self.n_points() or values.shape[1] != 4: raise ValueError("'values' should be an Nx4 array")
+
+        q = self.bound_instance.add_tetracolor_quantity(name, values)
+
+        # process and act on additional arguments
+        # note: each step modified the args dict and removes processed args
+        process_quantity_args(self, q, tetracolor_args)
+        process_color_args(self, q, tetracolor_args)
+        check_all_args_processed(self, q, tetracolor_args)
     
     # Vector
     def add_vector_quantity(self, name, values, vectortype="standard", **vector_args):
