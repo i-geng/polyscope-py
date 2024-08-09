@@ -95,6 +95,16 @@ def write_video_frame(fd, transparent_bg=True):
 def close_video_file(fd):
     psb.close_video_file(fd)
 
+### Write tetra video files
+def open_tetra_video_file(filename, fps=60, save_image_mode='LMS_Q'):
+    return psb.open_tetra_video_file(filename, fps, str_to_save_image_mode(save_image_mode))
+
+def write_tetra_video_frame(tfds):
+    psb.write_tetra_video_frame(tfds)
+
+def close_tetra_video_file(tfds):
+    psb.close_tetra_video_file(tfds)
+
 ### Small options
 
 def set_program_name(name):

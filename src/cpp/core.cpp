@@ -129,6 +129,22 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     ps::closeVideoFile(fd);
   });
 
+  // === Write tetra video files
+  m.def("open_tetra_video_file", [](std::string filename, int fps, ps::SaveImageMode mode) {
+    ps::TetraFileDescriptors* tfds = ps::openTetraVideoFile(filename, fps, mode);
+    return py::capsule(tfds);
+  });
+  
+  m.def("write_tetra_video_frame", [](py::capsule tfds_capsule) {
+    ps::TetraFileDescriptors* tfds = reinterpret_cast<ps::TetraFileDescriptors*>(tfds_capsule.get_pointer());
+    ps::writeTetraVideoFrame(tfds);
+  });
+
+  m.def("close_tetra_video_file", [](py::capsule tfds_capsule) {
+    ps::TetraFileDescriptors* tfds = reinterpret_cast<ps::TetraFileDescriptors*>(tfds_capsule.get_pointer());
+    ps::closeTetraVideoFile(tfds);
+  });
+
   // === Small options
   m.def("set_program_name", [](std::string x) { ps::options::programName = x; });
   m.def("set_verbosity", [](int x) { ps::options::verbosity = x; });
