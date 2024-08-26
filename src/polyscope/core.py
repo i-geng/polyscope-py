@@ -41,6 +41,9 @@ def is_initialized():
 def frame_tick():
     psb.frame_tick()
 
+def full_frame_tick():
+    psb.full_frame_tick()
+
 def shutdown():
     psb.shutdown()
 

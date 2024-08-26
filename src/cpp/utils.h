@@ -226,6 +226,12 @@ py::class_<TetracolorQ> bindTetracolorQuantity(py::module& m, std::string name) 
   return bindQuantity<TetracolorQ>(m, name.c_str());
 }
 
+// Add common bindings for all six channel color quantities
+template <typename SixChannelColorQ>
+py::class_<SixChannelColorQ> bindSixChannelColorQuantity(py::module& m, std::string name) {
+  return bindQuantity<SixChannelColorQ>(m, name.c_str());
+}
+
 // Add common bindings for all vector quantities
 template <typename VectorQ>
 py::class_<VectorQ> bindVectorQuantity(py::module& m, std::string name) {

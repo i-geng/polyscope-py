@@ -36,6 +36,10 @@ void bind_surface_mesh(py::module& m) {
   bindTetracolorQuantity<ps::SurfaceVertexTetracolorQuantity>(m, "SurfaceVertexTetracolorQuantity");
   bindTetracolorQuantity<ps::SurfaceFaceTetracolorQuantity>(m, "SurfaceFaceTetracolorQuantity");
 
+  // Six channel color quantities
+  bindSixChannelColorQuantity<ps::SurfaceVertexSixChannelColorQuantity>(m, "SurfaceVertexSixChannelColorQuantity");
+  bindSixChannelColorQuantity<ps::SurfaceFaceSixChannelColorQuantity>(m, "SurfaceFaceSixChannelColorQuantity");
+
   // Parameterization quantities
   py::class_<ps::SurfaceCornerParameterizationQuantity>(m, "SurfaceCornerParameterizationQuantity")
       .def("set_enabled", &ps::SurfaceCornerParameterizationQuantity::setEnabled, "Set enabled")
@@ -144,6 +148,12 @@ void bind_surface_mesh(py::module& m) {
            "Add a tetracolor value at vertices", py::return_value_policy::reference)
       .def("add_face_tetracolor_quantity", &ps::SurfaceMesh::addFaceTetracolorQuantity<Eigen::MatrixXf>,
            "Add a tetracolor value at faces", py::return_value_policy::reference)
+
+      // Six channel colors
+      .def("add_vertex_six_channel_color_quantity", &ps::SurfaceMesh::addVertexSixChannelColorQuantity<Eigen::MatrixXf>,
+          "Add a six channel color value at vertices", py::return_value_policy::reference)
+      .def("add_face_six_channel_color_quantity", &ps::SurfaceMesh::addFaceSixChannelColorQuantity<Eigen::MatrixXf>,
+          "Add a six channel color value at faces", py::return_value_policy::reference)
 
       // Distance
       .def("add_vertex_distance_quantity", &ps::SurfaceMesh::addVertexDistanceQuantity<Eigen::VectorXf>,

@@ -249,6 +249,31 @@ class SurfaceMesh(Structure):
         check_all_args_processed(self, q, tetracolor_args)
 
 
+    # Six channel color
+    def add_six_channel_color_quantity(self, name, values_even, values_odd, defined_on='vertices', param_name=None, image_origin='upper_left', **six_channel_color_args):
+        if defined_on != 'texture' and (len(values_even.shape) != 2 or values_even.shape[1] != 3): raise ValueError("'values_even' should be an Nx3 array")
+        if defined_on != 'texture' and (len(values_odd.shape) != 2 or values_odd.shape[1] != 3): raise ValueError("'values_odd' should be an Nx3 array")
+
+        if defined_on == 'vertices':
+            if values_even.shape[0] != self.n_vertices(): raise ValueError("'values_even' should be a length n_vertices array")
+            if values_odd.shape[0] != self.n_vertices(): raise ValueError("'values_odd' should be a length n_vertices array")
+            q = self.bound_instance.add_vertex_six_channel_color_quantity(name, values_even, values_odd)
+        elif defined_on == 'faces':
+            if values_even.shape[0] != self.n_faces(): raise ValueError("'values_even' should be a length n_faces array")
+            if values_odd.shape[0] != self.n_faces(): raise ValueError("'values_odd' should be a length n_faces array")
+            q = self.bound_instance.add_face_six_channel_color_quantity(name, values_even, values_odd)
+        elif defined_on == 'texture':
+            raise ValueError("six channel color texture not yet supported")
+        else:
+            raise ValueError("bad `defined_on` value {}, should be one of ['vertices', 'faces', 'texture']".format(defined_on))
+
+        # process and act on additional arguments
+        # note: each step modified the args dict and removes processed args
+        process_quantity_args(self, q, six_channel_color_args)
+        process_color_args(self, q, six_channel_color_args)
+        check_all_args_processed(self, q, six_channel_color_args)
+
+
     # Distance
     # [deprecated], this is just a special set of options for a scalar quantity now
     def add_distance_quantity(self, name, values, defined_on='vertices', enabled=None, signed=False, vminmax=None, stripe_size=None, stripe_size_relative=True, cmap=None):
