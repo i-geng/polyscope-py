@@ -125,6 +125,18 @@ def set_errors_throw_exceptions(val):
 def set_max_fps(f):
     psb.set_max_fps(f)
 
+def set_target_sleep(t):
+    psb.set_target_sleep(t)
+
+def set_draw_even_frame_first(b):
+    psb.set_draw_even_frame_first(b)
+
+def set_black_out_even_frames(b):
+    psb.set_black_out_even_frames(b)
+
+def set_black_out_odd_frames(b):
+    psb.set_black_out_odd_frames(b)
+
 def set_enable_vsync(b):
     psb.set_enable_vsync(b)
 
@@ -157,6 +169,9 @@ def set_user_gui_is_on_right_side(b):
 
 def set_build_default_gui_panels(b):
     psb.set_build_default_gui_panels(b)
+
+def set_build_even_odd_gui_panel(b):
+    psb.set_build_even_odd_gui_panel(b)
 
 def set_render_scene(b):
     psb.set_render_scene(b)

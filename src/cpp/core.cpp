@@ -152,6 +152,10 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_print_prefix", [](std::string x) { ps::options::printPrefix = x; });
   m.def("set_errors_throw_exceptions", [](bool x) { ps::options::errorsThrowExceptions = x; });
   m.def("set_max_fps", [](int x) { ps::options::maxFPS = x; });
+  m.def("set_target_sleep", [](int x) { ps::options::targetSleep = x; });
+  m.def("set_draw_even_frame_first", [](bool x) { ps::options::drawEvenFrameFirst = x; });
+  m.def("set_black_out_even_frames", [](bool x) { ps::options::blackOutEvenFrames = x; });
+  m.def("set_black_out_odd_frames", [](bool x) { ps::options::blackOutOddFrames = x; });
   m.def("set_enable_vsync", [](bool x) { ps::options::enableVSync = x; });
   m.def("set_use_prefs_file", [](bool x) { ps::options::usePrefsFile = x; });
   m.def("request_redraw", []() { ps::requestRedraw(); });
@@ -163,6 +167,7 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_build_gui", [](bool x) { ps::options::buildGui = x; });
   m.def("set_user_gui_is_on_right_side", [](bool x) { ps::options::userGuiIsOnRightSide = x; });
   m.def("set_build_default_gui_panels", [](bool x) { ps::options::buildDefaultGuiPanels = x; });
+  m.def("set_build_even_odd_gui_panel", [](bool x) { ps::options::buildEvenOddGuiPanel = x; });
   m.def("set_render_scene", [](bool x) { ps::options::renderScene = x; });
   m.def("set_open_imgui_window_for_user_callback", [](bool x) { ps::options::openImGuiWindowForUserCallback= x; });
   m.def("set_invoke_user_callback_for_nested_show", [](bool x) { ps::options::invokeUserCallbackForNestedShow = x; });
