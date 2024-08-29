@@ -128,6 +128,9 @@ def set_max_fps(f):
 def set_target_sleep(t):
     psb.set_target_sleep(t)
 
+def set_render_even_odd_absolute_clock(b):
+    psb.set_render_even_odd_absolute_clock(b)
+
 def set_draw_even_frame_first(b):
     psb.set_draw_even_frame_first(b)
 

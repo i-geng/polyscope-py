@@ -153,6 +153,7 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_errors_throw_exceptions", [](bool x) { ps::options::errorsThrowExceptions = x; });
   m.def("set_max_fps", [](int x) { ps::options::maxFPS = x; });
   m.def("set_target_sleep", [](float x) { ps::options::targetSleep = x; });
+  m.def("set_render_even_odd_absolute_clock", [](bool x) { ps::options::renderEvenOddAbsoluteClock = x; });
   m.def("set_draw_even_frame_first", [](bool x) { ps::options::drawEvenFrameFirst = x; });
   m.def("set_black_out_even_frames", [](bool x) { ps::options::blackOutEvenFrames = x; });
   m.def("set_black_out_odd_frames", [](bool x) { ps::options::blackOutOddFrames = x; });
