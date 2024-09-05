@@ -20,6 +20,11 @@ jobs:
       #name: Install Python
       #with:
         #python-version: '3.7'
+    
+    - uses: actions/setup-python@v2
+      name: Install python
+      with:
+        python-version: '3.9'
 
     - name: install python packages
       run: python3 -m pip install numpy
