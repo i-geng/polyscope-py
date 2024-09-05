@@ -1,6 +1,7 @@
 name: Build and Publish
 
 # NOTE: build logic is duplicated here and in test_build.yml
+# need to build tetrapolyscope
 
 # Run on the main branch for commits only
 on:
