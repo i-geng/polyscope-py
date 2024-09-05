@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/polyscope
+      url: https://pypi.org/p/tetrapolyscope
     permissions: # we authenticate via PyPI's 'trusted publisher' workflow, this permission is required
       id-token: write
     steps:
