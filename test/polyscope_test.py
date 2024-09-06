@@ -16,8 +16,8 @@ else:
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "build")))
 
 
-import polyscope as ps
-import polyscope.imgui as psim
+import tetrapolyscope as ps
+import tetrapolyscope.imgui as psim
 
 # Path to test assets
 assets_prefix = path.join(path.dirname(__file__), "assets/")
