@@ -89,7 +89,7 @@ def main():
         exclude_arch = False
 
     setup(
-        name='tetrapolyscope',
+        name='tetrapolyscope', # need a different name to avoid version conflicts
         version=__version__,
         author='Nicholas Sharp',
         author_email='nmwsharp@gmail.com',
