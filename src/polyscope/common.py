@@ -1,6 +1,6 @@
 import polyscope_bindings as psb
 
-from polyscope.core import str_to_datatype, str_to_vectortype, glm3, str_to_point_render_mode, point_render_mode_to_str, str_to_param_viz_style
+from tetrapolyscope.core import str_to_datatype, str_to_vectortype, glm3, str_to_point_render_mode, point_render_mode_to_str, str_to_param_viz_style
 
 
 def check_is_scalar_image(values):

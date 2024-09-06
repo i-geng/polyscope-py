@@ -98,8 +98,13 @@ def main():
         long_description=long_description,
         long_description_content_type='text/markdown',
         license="MIT",
-        package_dir = {'': 'src'},
-        packages=setuptools.find_packages(where="src"),
+        # package_dir = {'': 'src'},
+        # packages=setuptools.find_packages(where="src"),
+        packages=['tetrapolyscope', 'tetrapolyscope.imgui'],
+        package_dir = {
+            'tetrapolyscope': 'src/polyscope',
+            'tetrapolyscope.imgui': 'src/polyscope/imgui'
+        },
         ext_modules=[CMakeExtension('.', exclude_arch=exclude_arch)],
         install_requires=['numpy'],
         # setup_requires=['pybind11>=2.4'],

@@ -1,9 +1,9 @@
 import polyscope_bindings as psb
 import numpy as np
 
-from polyscope.core import str_to_datatype, str_to_vectortype, str_to_param_coords_type, str_to_param_viz_style, glm3
-from polyscope.structure import Structure
-from polyscope.common import process_quantity_args, process_scalar_args, process_color_args, process_vector_args, check_all_args_processed
+from tetrapolyscope.core import str_to_datatype, str_to_vectortype, str_to_param_coords_type, str_to_param_viz_style, glm3
+from tetrapolyscope.structure import Structure
+from tetrapolyscope.common import process_quantity_args, process_scalar_args, process_color_args, process_vector_args, check_all_args_processed
 
 class VolumeMesh(Structure):
 

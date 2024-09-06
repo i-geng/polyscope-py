@@ -1,5 +1,5 @@
 import polyscope_bindings as psb
-import polyscope.imgui as psim
+import tetrapolyscope.imgui as psim
 
 import os
 

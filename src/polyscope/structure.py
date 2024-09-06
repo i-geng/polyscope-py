@@ -1,7 +1,7 @@
 import polyscope_bindings as psb
 
-from polyscope.floating_quantities import add_scalar_image_quantity, add_color_image_quantity, add_color_alpha_image_quantity, add_depth_render_image_quantity, add_color_render_image_quantity, add_scalar_render_image_quantity, add_raw_color_render_image_quantity, add_raw_color_alpha_render_image_quantity
-from polyscope.managed_buffer import ManagedBuffer
+from tetrapolyscope.floating_quantities import add_scalar_image_quantity, add_color_image_quantity, add_color_alpha_image_quantity, add_depth_render_image_quantity, add_color_render_image_quantity, add_scalar_render_image_quantity, add_raw_color_render_image_quantity, add_raw_color_alpha_render_image_quantity
+from tetrapolyscope.managed_buffer import ManagedBuffer
 
 # Base class for common properties and methods on structures
 class Structure:

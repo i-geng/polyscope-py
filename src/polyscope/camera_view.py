@@ -1,7 +1,7 @@
 import polyscope_bindings as psb
 
-from polyscope.core import glm3, CameraParameters
-from polyscope.structure import Structure
+from tetrapolyscope.core import glm3, CameraParameters
+from tetrapolyscope.structure import Structure
 
 import numpy as np
 

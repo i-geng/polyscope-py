@@ -2,7 +2,7 @@ import polyscope_bindings as psb
 
 import numpy as np
 
-from polyscope.device_interop import CUDAOpenGLMappedAttributeBuffer, CUDAOpenGLMappedTextureBuffer
+from tetrapolyscope.device_interop import CUDAOpenGLMappedAttributeBuffer, CUDAOpenGLMappedTextureBuffer
 
 # A cache of mapped buffers
 _mapped_buffer_cache_CUDAOpenGL = {} # maps uniqueID --> buffer object

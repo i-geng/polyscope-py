@@ -1,8 +1,8 @@
 import polyscope_bindings as psb
 
-from polyscope.common import check_is_scalar_image, check_is_image3, check_is_image4, check_image_dims_compatible, process_scalar_args, process_color_args, process_image_args, process_render_image_args, process_quantity_args, process_implicit_render_args, check_all_args_processed
+from tetrapolyscope.common import check_is_scalar_image, check_is_image3, check_is_image4, check_image_dims_compatible, process_scalar_args, process_color_args, process_image_args, process_render_image_args, process_quantity_args, process_implicit_render_args, check_all_args_processed
 
-from polyscope.core import str_to_image_origin, str_to_datatype, str_to_implicit_render_mode, glm3
+from tetrapolyscope.core import str_to_image_origin, str_to_datatype, str_to_implicit_render_mode, glm3
 
 
   

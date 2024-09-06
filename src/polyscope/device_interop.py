@@ -5,7 +5,7 @@ from functools import partial
 
 import numpy as np
 
-from polyscope.core import get_render_engine_backend_name
+from tetrapolyscope.core import get_render_engine_backend_name
 
 device_interop_funcs = None
 

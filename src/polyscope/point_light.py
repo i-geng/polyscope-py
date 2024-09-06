@@ -1,7 +1,7 @@
 import polyscope_bindings as psb
 
-from polyscope.core import glm3
-from polyscope.light import Light
+from tetrapolyscope.core import glm3
+from tetrapolyscope.light import Light
 
 class PointLight(Light):
 
