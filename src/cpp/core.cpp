@@ -298,6 +298,7 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   
   // === Rendering
   m.def("set_SSAA_factor", [](int n) { ps::options::ssaaFactor = n; });
+  m.def("set_use_flat_lighting", [](bool x) { ps::options::useFlatLighting = x; });
   
 
   // === Structure

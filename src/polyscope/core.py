@@ -347,6 +347,9 @@ def set_transparency_render_passes(n):
 def set_SSAA_factor(n):
     psb.set_SSAA_factor(n)
 
+def set_use_flat_lighting(b):
+    psb.set_use_flat_lighting(b)
+
 ## Groups
 
 class Group:
