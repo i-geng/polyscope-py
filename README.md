@@ -31,3 +31,6 @@ pip install .
 ```
 
 To use polyscope's functions for writing videos, you will also need FFmpeg.
+
+Github Actions Workflow:
+Test will fail because of tetrapolyscope rename. TODO: fix
