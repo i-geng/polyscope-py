@@ -42,11 +42,11 @@ jobs:
       CIBW_SKIP: "cp313-*" # skip python 13 for now, builds failing
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v3
         name: Install Python
         with:
           python-version: '3.9'
@@ -73,7 +73,7 @@ jobs:
           python -m cibuildwheel --output-dir wheelhouse
 
       # Upload binaries to the github artifact store
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         with:
           path: |
             ./wheelhouse/*.whl 
@@ -96,13 +96,13 @@ jobs:
       id-token: write
     steps:
       - name: Download built wheels artifact # downloads from the jobs storage from the previous step
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: artifact
           path: dist
 
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@release/v3
         # with:
           # To test: repository_url: https://test.pypi.org/legacy/
 
