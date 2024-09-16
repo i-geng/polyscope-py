@@ -1,6 +1,6 @@
 # Tetetrapolyscope Docs
 
-- Last updated: 9/16/24, [alpha release](https://pypi.org/project/tetrapolyscope/0.0.3/)
+- Last updated: 9/16/24, [alpha release](https://pypi.org/project/tetrapolyscope/0.0.4/)
   - Examples scripts available at [Chromalab - Coretsumo](https://github.com/varunneal/ChromaLab/tree/master/notebooks/coretsumo).
 
 ### Tetracolor Quantities
