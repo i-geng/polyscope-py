@@ -34,11 +34,5 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 build.verbose = true
 logging.level = "INFO"
-
-[tool.setuptools]
-packages = ["tetrapolyscope", "tetrapolyscope.imgui", "tetrapolyscope.implot"]
-
-[tool.setuptools.package-dir]
-tetrapolyscope = "src/polyscope"
-"tetrapolyscope.imgui" = "src/polyscope/imgui"
-"tetrapolyscope.implot" = "src/polyscope/implot"
+wheel.packages = ["src/polyscope"]
+wheel.install-dir = "tetrapolyscope"
