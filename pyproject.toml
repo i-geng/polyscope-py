@@ -34,5 +34,4 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 build.verbose = true
 logging.level = "INFO"
-wheel.packages = ["src/polyscope"]
-wheel.install-dir = "tetrapolyscope"
+wheel.packages = ["src/tetrapolyscope"]
