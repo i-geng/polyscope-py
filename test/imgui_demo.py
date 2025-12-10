@@ -11,8 +11,8 @@ else:
     # normal / unix case
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "build")))
 
-import polyscope
-import polyscope.imgui as psim
+import tetrapolyscope
+import tetrapolyscope.imgui as psim
 import sys
 
 def main():

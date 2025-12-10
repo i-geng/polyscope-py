@@ -3,9 +3,9 @@ import numpy as np
 
 from tetrapolyscope.core import str_to_datatype, str_to_vectortype, str_to_param_coords_type,            \
                            str_to_param_viz_style, str_to_back_face_policy, back_face_policy_to_str,\
-                           str_to_image_origin, glm3
+                           str_to_image_origin, glm3, enum_to_str, str_to_enum
 from tetrapolyscope.structure import Structure
-from tetrapolyscope.common import process_quantity_args, process_scalar_args, process_color_args, process_vector_args, process_parameterization_args, check_all_args_processed, check_is_scalar_image, check_is_image3
+from tetrapolyscope.common import process_quantity_args, process_scalar_args, process_color_args, process_vector_args, process_texture_map_args, process_parameterization_args, check_all_args_processed, check_is_scalar_image, check_is_image3
 
 class SurfaceMesh(Structure):
 
@@ -76,6 +76,22 @@ class SurfaceMesh(Structure):
             self.bound_instance.update_vertex_positions2D(vertices)
         else:
             raise ValueError("bad vertex shape")
+    
+    # Custom transparency quantity
+    def set_transparency_quantity(self, quantity_name):
+        self.bound_instance.set_transparency_quantity(quantity_name)
+    def clear_transparency_quantity(self):
+        self.bound_instance.clear_transparency_quantity()
+    
+    
+    # Picking
+    def append_pick_data(self, pick_result):
+        struct_result = self.bound_instance.interpret_pick_result(pick_result.raw_result)
+        pick_result.structure_data["element_type"] = enum_to_str(struct_result.element_type)
+        pick_result.structure_data["index"] = struct_result.index
+        bary_coords = np.array(struct_result.bary_coords.as_tuple())
+        if not (bary_coords == np.array((-1,-1,-1))).all():
+            pick_result.structure_data["bary_coords"] = bary_coords
 
     ## Options
 
@@ -103,7 +119,13 @@ class SurfaceMesh(Structure):
         self.bound_instance.set_smooth_shade(val)
     def get_smooth_shade(self):
         return self.bound_instance.get_smooth_shade()
-
+    
+    # Selection Mode
+    def set_selection_mode(self, val):
+        self.bound_instance.set_selection_mode(str_to_enum(val, psb.MeshSelectionMode))
+    def get_selection_mode(self):
+        return enum_to_str(self.bound_instance.get_selection_mode())
+    
     # Material
     def set_material(self, mat):
         self.bound_instance.set_material(mat)
@@ -181,6 +203,9 @@ class SurfaceMesh(Structure):
         elif defined_on == 'halfedges':
             if values.shape[0] != self.n_halfedges(): raise ValueError("'values' should be a length n_halfedges array")
             q = self.bound_instance.add_halfedge_scalar_quantity(name, values, str_to_datatype(datatype))
+        elif defined_on == 'corners':
+            if values.shape[0] != self.n_corners(): raise ValueError("'values' should be a length n_corners array")
+            q = self.bound_instance.add_corner_scalar_quantity(name, values, str_to_datatype(datatype))
         elif defined_on == 'texture':
             check_is_scalar_image(values)
             dimY = values.shape[0]
@@ -189,13 +214,14 @@ class SurfaceMesh(Structure):
                 raise ValueError("when adding a quantity defined in a texture, you must pass 'param_name' as a string giving the name of a parameterization quantity on this structure, which provides the UV coords")
             q = self.bound_instance.add_texture_scalar_quantity(name, param_name, dimX, dimY, values.flatten(), str_to_image_origin(image_origin), str_to_datatype(datatype))
         else:
-            raise ValueError("bad `defined_on` value {}, should be one of ['vertices', 'faces', 'edges', 'halfedges', 'texture']".format(defined_on))
-
+            raise ValueError("bad `defined_on` value {}, should be one of ['vertices', 'faces', 'edges', 'halfedges', 'corners', 'texture']".format(defined_on))
+            
 
         # process and act on additional arguments
         # note: each step modifies the args dict and removes processed args
         process_quantity_args(self, q, scalar_args)
         process_scalar_args(self, q, scalar_args)
+        process_texture_map_args(self, q, scalar_args)
         check_all_args_processed(self, q, scalar_args)
 
 
@@ -224,6 +250,7 @@ class SurfaceMesh(Structure):
         # note: each step modifies the args dict and removes processed args
         process_quantity_args(self, q, color_args)
         process_color_args(self, q, color_args)
+        process_texture_map_args(self, q, color_args)
         check_all_args_processed(self, q, color_args)
 
 

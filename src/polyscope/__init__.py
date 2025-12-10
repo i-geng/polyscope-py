@@ -1,3 +1,16 @@
+# Track the __version__ attribute
+try:
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # Python < 3.8
+    from importlib_metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("polyscope")
+except PackageNotFoundError:
+    # Package is not installed, fall back to a default
+    __version__ = "unknown"
+
 from tetrapolyscope.core import *
 
 from tetrapolyscope.structure import *
@@ -14,4 +27,3 @@ from tetrapolyscope.volume_grid import *
 from tetrapolyscope.camera_view import *
 from tetrapolyscope.global_floating_quantity_structure import *
 from tetrapolyscope.point_light import *
-

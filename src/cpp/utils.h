@@ -101,16 +101,17 @@ py::class_<StructureT> bindStructure(py::module& m, std::string name) {
 
   // structure basics
   s.def("remove", &StructureT::remove, "Remove the structure")
-      .def("get_name", [](StructureT& s) { return s.name; }, "Ge the name")
+      .def(
+          "get_name", [](StructureT& s) { return s.name; }, "Ge the name")
       .def("get_unique_prefix", &StructureT::uniquePrefix, "Get unique prefix")
       .def("set_enabled", &StructureT::setEnabled, "Enable the structure")
       .def("enable_isolate", &StructureT::enableIsolate, "Enable the structure, disable all of same type")
       .def("is_enabled", &StructureT::isEnabled, "Check if the structure is enabled")
       .def("set_transparency", &StructureT::setTransparency, "Set transparency alpha")
       .def("get_transparency", &StructureT::getTransparency, "Get transparency alpha")
-      
+
       // group things
-      .def("add_to_group", overload_cast_<std::string>()(&StructureT::addToGroup) , "Add to group")
+      .def("add_to_group", overload_cast_<std::string>()(&StructureT::addToGroup), "Add to group")
 
       // slice plane things
       .def("set_ignore_slice_plane", &StructureT::setIgnoreSlicePlane, "Set ignore slice plane")
@@ -133,6 +134,8 @@ py::class_<StructureT> bindStructure(py::module& m, std::string name) {
       .def("translate", [](StructureT& s, Eigen::Vector3f T) { s.translate(eigen2glm(T)); }, "apply the given translation to the shape, updating its position")
       .def("get_transform", [](StructureT& s) { return glm2eigen(s.getTransform()); }, "get the current 4x4 transform matrix")
       .def("get_position", [](StructureT& s) { return glm2eigen(s.getPosition()); }, "get the position of the shape origin after transform")
+      .def("set_transform_gizmo_enabled", &StructureT::setTransformGizmoEnabled)
+      .def("get_transform_gizmo_enabled", &StructureT::getTransformGizmoEnabled)
       
       // floating quantites
       .def("add_scalar_image_quantity", &StructureT::template addScalarImageQuantity<Eigen::VectorXf>, py::arg("name"), py::arg("dimX"), py::arg("dimY"), py::arg("values"), py::arg("imageOrigin")=ps::ImageOrigin::UpperLeft, py::arg("type")=ps::DataType::STANDARD, py::return_value_policy::reference)
@@ -196,17 +199,21 @@ py::class_<ScalarQ> bindScalarQuantity(py::module& m, std::string name) {
   return bindQuantity<ScalarQ>(m, name.c_str())
       .def("set_color_map", &ScalarQ::setColorMap, "Set color map")
       .def("set_map_range", &ScalarQ::setMapRange, "Set map range")
+      .def("set_onscreen_colorbar_enabled", &ScalarQ::setOnscreenColorbarEnabled, "Set onscreen color bar enabled")
+      .def("set_onscreen_colorbar_location", &ScalarQ::setOnscreenColorbarLocation, "Set onscreen color bar location")
+      // TODO add exportColorMapToSVG()
+      .def("set_map_range", &ScalarQ::setMapRange, "Set map range")
       .def("set_isolines_enabled", &ScalarQ::setIsolinesEnabled)
-      .def("set_isoline_width", &ScalarQ::setIsolineWidth, "Set isoline width")
-      .def("set_isoline_darkness", &ScalarQ::setIsolineDarkness);
+      .def("set_isoline_style", &ScalarQ::setIsolineStyle)
+      .def("set_isoline_period", &ScalarQ::setIsolinePeriod, "Set isoline period")
+      .def("set_isoline_width", &ScalarQ::setIsolineWidth, "Set isoline width") // deprecated
+      .def("set_isoline_darkness", &ScalarQ::setIsolineDarkness)
+      .def("set_isoline_contour_thickness", &ScalarQ::setIsolineContourThickness);
 }
 
 template <typename VolumeMeshVertexScalarQuantity>
 py::class_<VolumeMeshVertexScalarQuantity> bindVMVScalarQuantity(py::module& m, std::string name) {
-  return bindQuantity<VolumeMeshVertexScalarQuantity>(m, name.c_str())
-      .def("set_color_map", &VolumeMeshVertexScalarQuantity::setColorMap, "Set color map")
-      .def("set_map_range", &VolumeMeshVertexScalarQuantity::setMapRange, "Set map range")
-      .def("set_isoline_width", &VolumeMeshVertexScalarQuantity::setIsolineWidth, "Set isoline width")
+  return bindScalarQuantity<VolumeMeshVertexScalarQuantity>(m, name.c_str())
       .def("set_level_set_enable", &VolumeMeshVertexScalarQuantity::setEnabledLevelSet,
            "Set level set rendering enabled")
       .def("set_level_set_value", &VolumeMeshVertexScalarQuantity::setLevelSetValue, "Set level set value")
@@ -238,7 +245,15 @@ py::class_<VectorQ> bindVectorQuantity(py::module& m, std::string name) {
   return bindQuantity<VectorQ>(m, name.c_str())
       .def("set_length", &VectorQ::setVectorLengthScale, "Set length")
       .def("set_radius", &VectorQ::setVectorRadius, "Set radius")
-      .def("set_color", &VectorQ::setVectorColor, "Set color");
+      .def("set_color", &VectorQ::setVectorColor, "Set color")
+      .def("set_material", &VectorQ::setMaterial, "Set material");
+}
+
+// Add common bindings for all texture map quantities
+// (this one is 'additive', )
+template <typename TextureQ>
+void addTextureMapQuantityBindings(py::class_<TextureQ>& boundTextureQ) {
+  boundTextureQ.def("set_filter_mode", &TextureQ::setFilterMode, "Set filter mode");
 }
 
 // Add common image options

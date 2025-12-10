@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../build/"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "../src/"))
 
 import numpy as np
-import polyscope as ps
+import tetrapolyscope as ps
 
 
 ps.set_use_prefs_file(False)

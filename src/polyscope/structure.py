@@ -21,9 +21,9 @@ class Structure:
     def remove_all_quantities(self):
         '''Remove all quantities on the structure'''
         self.bound_instance.remove_all_quantities()
-    def remove_quantity(self, name):
+    def remove_quantity(self, name, error_if_absent=False):
         '''Remove a single quantity on the structure'''
-        self.bound_instance.remove_quantity(name)
+        self.bound_instance.remove_quantity(name, error_if_absent)
     
 
     ## Enable/disable
@@ -58,6 +58,10 @@ class Structure:
         return self.bound_instance.get_transform()
     def get_position(self):
         return self.bound_instance.get_position()
+    def set_transform_gizmo_enabled(self, val):
+        self.bound_instance.set_transform_gizmo_enabled(val)
+    def get_transform_gizmo_enabled(self):
+        return self.bound_instance.get_transform_gizmo_enabled()
     
     ## Managed Buffers
     

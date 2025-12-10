@@ -20,7 +20,11 @@ using overload_cast_ = pybind11::detail::overload_cast_impl<Args...>;
 // clang-format off
 void bind_point_cloud(py::module& m) {
 
-  // == Helper quantity classes
+  // == Helper classes
+  py::class_<ps::PointCloudPickResult>(m, "PointCloudPickResult")
+   .def(py::init<>())
+   .def_readonly("index", &ps::PointCloudPickResult::index)
+  ;
 
   // Scalar quantities
   bindScalarQuantity<ps::PointCloudScalarQuantity>(m, "PointCloudScalarQuantity");
@@ -34,6 +38,15 @@ void bind_point_cloud(py::module& m) {
   // Vector quantities
   bindVectorQuantity<ps::PointCloudVectorQuantity>(m, "PointCloudVectorQuantity");
 
+  // Parameterization quantities
+  py::class_<ps::PointCloudParameterizationQuantity>(m, "PointCloudParameterizationQuantity")
+      .def("set_enabled", &ps::PointCloudParameterizationQuantity::setEnabled, "Set enabled")
+      .def("set_style", &ps::PointCloudParameterizationQuantity::setStyle, "Set style")
+      .def("set_grid_colors", &ps::PointCloudParameterizationQuantity::setGridColors, "Set grid colors")
+      .def("set_checker_colors", &ps::PointCloudParameterizationQuantity::setCheckerColors, "Set checker colors")
+      .def("set_checker_size", &ps::PointCloudParameterizationQuantity::setCheckerSize, "Set checker size")
+      .def("set_color_map", &ps::PointCloudParameterizationQuantity::setColorMap, "Set color map")
+    ;
 
   // == Main class
   bindStructure<ps::PointCloud>(m, "PointCloud")
@@ -53,14 +66,19 @@ void bind_point_cloud(py::module& m) {
     .def("set_point_render_mode", &ps::PointCloud::setPointRenderMode, "Set point render mode")
     .def("get_point_render_mode", &ps::PointCloud::getPointRenderMode, "Get point render mode")
 
+    // picking
+    .def("interpret_pick_result", &ps::PointCloud::interpretPickResult)
+
     // variable radius
-    .def("set_point_radius_quantity", 
-        overload_cast_<ps::PointCloudScalarQuantity*, bool>()(&ps::PointCloud::setPointRadiusQuantity), 
-        "Use a scalar to set radius", py::arg("quantity"), py::arg("autoscale")=true)
     .def("set_point_radius_quantity", 
         overload_cast_<std::string, bool>()(&ps::PointCloud::setPointRadiusQuantity), 
         "Use a scalar to set radius by name", py::arg("quantity_name"), py::arg("autoscale")=true)
     .def("clear_point_radius_quantity", &ps::PointCloud::clearPointRadiusQuantity, "Clear any quantity setting the radius")
+    
+    // scalar transparency
+    .def("set_transparency_quantity", 
+        overload_cast_<std::string>()(&ps::PointCloud::setTransparencyQuantity), py::arg("quantity_name"))
+    .def("clear_transparency_quantity", &ps::PointCloud::clearTransparencyQuantity)
         
     // quantities
     .def("add_color_quantity", &ps::PointCloud::addColorQuantity<Eigen::MatrixXf>, "Add a color function at points",
@@ -72,7 +90,11 @@ void bind_point_cloud(py::module& m) {
     .def("add_vector_quantity", &ps::PointCloud::addVectorQuantity<Eigen::MatrixXf>, "Add a vector function at points",
         py::arg("name"), py::arg("values"), py::arg("vector_type")=ps::VectorType::STANDARD, py::return_value_policy::reference)
     .def("add_vector_quantity2D", &ps::PointCloud::addVectorQuantity2D<Eigen::MatrixXf>, "Add a vector function at points",
-        py::arg("name"), py::arg("values"), py::arg("vector_type")=ps::VectorType::STANDARD, py::return_value_policy::reference);
+        py::arg("name"), py::arg("values"), py::arg("vector_type")=ps::VectorType::STANDARD, py::return_value_policy::reference)
+    .def("add_parameterization_quantity", &ps::PointCloud::addParameterizationQuantity<Eigen::MatrixXf>, 
+        py::return_value_policy::reference)
+
+    ;
 
   // Static adders and getters
   m.def("register_point_cloud", &ps::registerPointCloud<Eigen::MatrixXf>, 

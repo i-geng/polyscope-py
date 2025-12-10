@@ -41,6 +41,7 @@ void bind_implicit_helpers(py::module& m);
 void bind_managed_buffer(py::module& m);
 void bind_imgui(py::module& m);
 void bind_point_light(py::module& m);
+void bind_implot(py::module& m);
 
 // Signal handler (makes ctrl-c work, etc)
 void checkSignals() {
@@ -63,12 +64,12 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   atexit.attr("register")(py::cpp_function([]() {
         ps::state::userCallback = nullptr;
         if (ps::render::engine != nullptr) {
-          ps::shutdown();
+          ps::shutdown(true);
         }
   }));
   
   // === Basic flow 
-  m.def("init", &ps::init, py::arg("backend")="", "Initialize Polyscope");
+  m.def("init", &ps::init, py::arg("backend")="auto", "Initialize Polyscope");
   m.def("check_initialized", &ps::checkInitialized);
   m.def("is_initialized", &ps::isInitialized);
   m.def("show", [](size_t forFrames) {
@@ -96,17 +97,24 @@ PYBIND11_MODULE(polyscope_bindings, m) {
 
   // === Render engine related things
   m.def("get_render_engine_backend_name", &ps::render::getRenderEngineBackendName);
+  m.def("is_headless", &ps::isHeadless);
+  m.def("set_allow_headless_backends", [](bool x) { ps::options::allowHeadlessBackends = x; });
 
   // === Structure management
   m.def("remove_all_structures", &ps::removeAllStructures, "Remove all structures from polyscope");
   
   // === Screenshots
-  m.def("screenshot", overload_cast_<bool>()(&ps::screenshot), "Take a screenshot");
-  m.def("screenshot_to_buffer", [](bool transparent_bg) { 
-      std::vector<unsigned char> buff = ps::screenshotToBuffer(transparent_bg);
+  py::class_<ps::ScreenshotOptions>(m, "ScreenshotOptions")
+   .def(py::init<>())
+   .def_readwrite("include_UI", &ps::ScreenshotOptions::includeUI)
+   .def_readwrite("transparent_background", &ps::ScreenshotOptions::transparentBackground)
+  ;
+  m.def("screenshot", overload_cast_<const ps::ScreenshotOptions&>()(&ps::screenshot), "Take a screenshot");
+  m.def("screenshot_to_buffer", [](const ps::ScreenshotOptions& opts) { 
+      std::vector<unsigned char> buff = ps::screenshotToBuffer(opts);
       return py::array(buff.size(), buff.data());
     }, "Take a screenshot to buffer");
-  m.def("named_screenshot", overload_cast_<std::string, bool>()(&ps::screenshot), "Take a screenshot");
+  m.def("named_screenshot", overload_cast_<std::string, const ps::ScreenshotOptions&>()(&ps::screenshot), "Take a screenshot");
   m.def("set_screenshot_extension", [](std::string x) { ps::options::screenshotExtension = x; });
 
   // === Rasterize tetra file
@@ -159,12 +167,17 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_black_out_odd_frames", [](bool x) { ps::options::blackOutOddFrames = x; });
   m.def("set_enable_vsync", [](bool x) { ps::options::enableVSync = x; });
   m.def("set_use_prefs_file", [](bool x) { ps::options::usePrefsFile = x; });
+  m.def("set_do_default_mouse_interaction", [](bool x) { ps::state::doDefaultMouseInteraction = x; });
   m.def("request_redraw", []() { ps::requestRedraw(); });
   m.def("get_redraw_requested", []() { return ps::redrawRequested(); });
   m.def("set_always_redraw", [](bool x) { ps::options::alwaysRedraw = x; });
+  m.def("set_frame_tick_limit_fps_mode", [](ps::LimitFPSMode x) { ps::options::frameTickLimitFPSMode = x; });
   m.def("set_enable_render_error_checks", [](bool x) { ps::options::enableRenderErrorChecks = x; });
+  m.def("set_egl_device_index", [](int x) { ps::options::eglDeviceIndex = x; });
   m.def("set_autocenter_structures", [](bool x) { ps::options::autocenterStructures = x; });
   m.def("set_autoscale_structures", [](bool x) { ps::options::autoscaleStructures = x; });
+  m.def("set_ui_scale", [](float x) { ps::options::uiScale = x; });
+  m.def("get_ui_scale", []() { return ps::options::uiScale; });
   m.def("set_build_gui", [](bool x) { ps::options::buildGui = x; });
   m.def("set_user_gui_is_on_right_side", [](bool x) { ps::options::userGuiIsOnRightSide = x; });
   m.def("set_build_default_gui_panels", [](bool x) { ps::options::buildDefaultGuiPanels = x; });
@@ -174,6 +187,8 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_invoke_user_callback_for_nested_show", [](bool x) { ps::options::invokeUserCallbackForNestedShow = x; });
   m.def("set_give_focus_on_show", [](bool x) { ps::options::giveFocusOnShow = x; });
   m.def("set_hide_window_after_show", [](bool x) { ps::options::hideWindowAfterShow = x; });
+  m.def("set_warn_for_invalid_values", [](bool x) { ps::options::warnForInvalidValues = x; });
+  m.def("set_display_message_popups", [](bool x) { ps::options::displayMessagePopups = x; });
 
 
   // === Scene extents
@@ -190,7 +205,9 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("get_up_dir", ps::view::getUpDir);
   m.def("set_front_dir", [](ps::FrontDir x) { ps::view::setFrontDir(x); });
   m.def("get_front_dir", ps::view::getFrontDir);
-
+  m.def("set_vertical_fov_degrees", ps::view::setVerticalFieldOfViewDegrees);
+  m.def("get_vertical_fov_degrees", ps::view::getVerticalFieldOfViewDegrees);
+  m.def("get_aspect_ratio_width_over_height", ps::view::getAspectRatioWidthOverHeight);
   m.def("reset_camera_to_home_view", ps::view::resetCameraToHomeView);
   m.def("look_at", [](glm::vec3 location, glm::vec3 target, bool flyTo) { 
       ps::view::lookAt(location, target, flyTo); 
@@ -203,15 +220,16 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("set_view_camera_parameters", &ps::view::setViewToCamera);
   m.def("set_camera_view_matrix", [](Eigen::Matrix4f mat) { ps::view::setCameraViewMatrix(eigen2glm(mat)); });
   m.def("get_camera_view_matrix", []() { return glm2eigen(ps::view::getCameraViewMatrix()); });
+  m.def("set_view_center", [](glm::vec3 pos, bool flyTo) { ps::view::setViewCenter(pos, flyTo); });
+  m.def("get_view_center", &ps::view::getViewCenter);
   m.def("set_window_size", &ps::view::setWindowSize);
   m.def("get_window_size", &ps::view::getWindowSize);
   m.def("get_buffer_size", &ps::view::getBufferSize);
   m.def("set_window_resizable", &ps::view::setWindowResizable);
   m.def("get_window_resizable", &ps::view::getWindowResizable);
-  m.def("set_view_from_json", ps::view::setViewFromJson);
-  m.def("get_view_as_json", ps::view::getViewAsJson);
-  m.def("screen_coords_to_world_ray", ps::view::screenCoordsToWorldRay);
-  m.def("screen_coords_to_world_position", ps::view::screenCoordsToWorldPosition);
+  m.def("set_view_from_json", &ps::view::setViewFromJson);
+  m.def("get_view_as_json", &ps::view::getViewAsJson);
+  m.def("screen_coords_to_world_ray", &ps::view::screenCoordsToWorldRay);
   m.def("set_background_color", [](glm::vec4 c) { for(int i = 0; i < 4; i++) ps::view::bgColor[i] = c[i]; });
   m.def("get_background_color", []() { return glm2eigen(glm::vec4{
         ps::view::bgColor[0], ps::view::bgColor[1], ps::view::bgColor[2], ps::view::bgColor[3] 
@@ -226,10 +244,10 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("build_user_gui_and_invoke_callback", &ps::buildUserGuiAndInvokeCallback);
   
   // === Messages
-  m.def("info", ps::info, "Send an info message");
-  m.def("warning", ps::warning, "Send a warning message");
-  m.def("error", ps::error, "Send an error message");
-  m.def("terminating_error", ps::terminatingError, "Send a terminating error message");
+  m.def("info", overload_cast_<int, std::string>()(&ps::info), "Send an info message");
+  m.def("warning", &ps::warning, "Send a warning message");
+  m.def("error", &ps::error, "Send an error message");
+  m.def("terminating_error", &ps::terminatingError, "Send a terminating error message");
 
   // === Callback
   m.def("set_user_callback", [](const std::function<void(void)>& func) { 
@@ -247,38 +265,37 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   m.def("clear_user_callback", []() {ps::state::userCallback = nullptr;});
 
   // === Pick
-  m.def("have_selection", [](){ return ps::pick::haveSelection();});
-  m.def("get_selection", [](){
-    const auto selection = ps::pick::getSelection();
-    const auto * structure = std::get<0>(selection);
-    if (structure == nullptr) {
-      return std::make_tuple(std::string(), size_t{0});
-    }
-    return std::make_tuple(structure->name, std::get<1>(selection));
-  });
-  m.def(
-    "set_selection",
-    [](const std::string &name, size_t index){
-      for(const auto &structureTypeName : std::array<std::string, 4>{
-        ps::PointCloud::structureTypeName,
-        ps::CurveNetwork::structureTypeName,
-        ps::SurfaceMesh::structureTypeName,
-        ps::VolumeMesh::structureTypeName
-      }) {
-        if (ps::hasStructure(structureTypeName, name)) {
-          auto * structure = ps::getStructure(structureTypeName, name);
-          ps::pick::setSelection(std::make_pair(structure, index));
-          break;
-        }
-      }
-    },
-    py::arg("name"),
-    py::arg("index")
-  );
+
+  py::class_<ps::PickResult>(m, "PickResult")
+   .def(py::init<>())
+   .def_readonly("is_hit", &ps::PickResult::isHit)
+  //  .def_readonly("structure", &ps::PickResult::structure)
+   .def_readonly("structure_handle", &ps::PickResult::structureHandle)
+   .def_readonly("structure_type", &ps::PickResult::structureType)
+   .def_readonly("structure_name", &ps::PickResult::structureName)
+   .def_readonly("quantity_name", &ps::PickResult::quantityName)
+   .def_readonly("screen_coords", &ps::PickResult::screenCoords)
+   .def_readonly("buffer_inds", &ps::PickResult::bufferInds)
+   .def_readonly("position", &ps::PickResult::position)
+   .def_readonly("depth", &ps::PickResult::depth)
+   .def_readonly("local_index", &ps::PickResult::localIndex)
+  ;
+
+  // stateful selection
+  m.def("have_selection", &ps::haveSelection);
+  m.def("get_selection", &ps::getSelection);
+  m.def("reset_selection", &ps::resetSelection);
+  // inentionally no binding to set_selection(), it is low-level and not obvious how to bind
+
+  // query what is under a pixel
+  m.def("pick_at_screen_coords", &ps::pickAtScreenCoords);
+  m.def("pick_at_buffer_inds", &ps::pickAtBufferInds);
 
   // === Ground plane and shadows
   m.def("set_ground_plane_mode", [](ps::GroundPlaneMode x) { ps::options::groundPlaneMode = x; });
+  m.def("set_ground_plane_height_mode", [](ps::GroundPlaneHeightMode x) { ps::options::groundPlaneHeightMode = x; });
   m.def("set_ground_plane_height_factor", [](float x, bool isRelative) { ps::options::groundPlaneHeightFactor.set(x, isRelative); });
+  m.def("set_ground_plane_height", [](float x) { ps::options::groundPlaneHeight = x; });
   m.def("set_shadow_blur_iters", [](int x) { ps::options::shadowBlurIters = x; });
   m.def("set_shadow_darkness", [](float x) { ps::options::shadowDarkness = x; });
   
@@ -324,6 +341,24 @@ PYBIND11_MODULE(polyscope_bindings, m) {
    .def("set_enabled", &ps::Group::setEnabled, py::return_value_policy::reference)
    .def("set_show_child_details", &ps::Group::setShowChildDetails)
    .def("set_hide_descendants_from_structure_lists", &ps::Group::setHideDescendantsFromStructureLists)
+   .def("get_child_structure_names", [](ps::Group& g) { 
+        std::vector<std::string> names;
+        for(ps::WeakHandle<ps::Structure>& wh : g.childrenStructures) {
+            if(wh.isValid()) {
+              names.push_back(wh.get().getName());
+            }
+        }
+        return names;
+    })
+   .def("get_child_group_names", [](ps::Group& g) { 
+        std::vector<std::string> names;
+        for(ps::WeakHandle<ps::Group>& wh : g.childrenGroups) {
+            if(wh.isValid()) {
+              names.push_back(wh.get().name);
+            }
+        }
+        return names;
+    })
   ;
 
   // create/get/delete
@@ -422,12 +457,12 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     .value("arcball", ps::view::NavigateStyle::Arcball)
     .value("none", ps::view::NavigateStyle::None)
     .value("first_person", ps::view::NavigateStyle::FirstPerson)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::ProjectionMode>(m, "ProjectionMode")
     .value("perspective", ps::ProjectionMode::Perspective)
     .value("orthographic", ps::ProjectionMode::Orthographic)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::UpDir>(m, "UpDir")
     .value("x_up", ps::UpDir::XUp)
@@ -436,7 +471,7 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     .value("neg_x_up", ps::UpDir::NegXUp)
     .value("neg_y_up", ps::UpDir::NegYUp)
     .value("neg_z_up", ps::UpDir::NegZUp)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::FrontDir>(m, "FrontDir")
     .value("x_front", ps::FrontDir::XFront)
@@ -445,23 +480,24 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     .value("neg_x_front", ps::FrontDir::NegXFront)
     .value("neg_y_front", ps::FrontDir::NegYFront)
     .value("neg_z_front", ps::FrontDir::NegZFront)
-    .export_values(); 
+    ; 
 
   py::enum_<ps::DataType>(m, "DataType")
     .value("standard", ps::DataType::STANDARD)
     .value("symmetric", ps::DataType::SYMMETRIC)
     .value("magnitude", ps::DataType::MAGNITUDE)
-    .export_values(); 
+    .value("categorical", ps::DataType::CATEGORICAL)
+    ; 
 
   py::enum_<ps::VectorType>(m, "VectorType")
     .value("standard", ps::VectorType::STANDARD)
     .value("ambient", ps::VectorType::AMBIENT)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::ParamCoordsType>(m, "ParamCoordsType")
     .value("unit", ps::ParamCoordsType::UNIT)
     .value("world", ps::ParamCoordsType::WORLD)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::ParamVizStyle>(m, "ParamVizStyle")
     .value("checker", ps::ParamVizStyle::CHECKER)
@@ -469,48 +505,100 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     .value("grid", ps::ParamVizStyle::GRID)
     .value("local_check", ps::ParamVizStyle::LOCAL_CHECK)
     .value("local_rad", ps::ParamVizStyle::LOCAL_RAD)
-    .export_values(); 
+    ; 
 
   py::enum_<ps::BackFacePolicy>(m, "BackFacePolicy")
     .value("identical", ps::BackFacePolicy::Identical)
     .value("different", ps::BackFacePolicy::Different)
     .value("custom", ps::BackFacePolicy::Custom)
     .value("cull", ps::BackFacePolicy::Cull)
-    .export_values(); 
+    ; 
+  
+  py::enum_<ps::LimitFPSMode>(m, "LimitFPSMode")
+    .value("ignore_limits", ps::LimitFPSMode::IgnoreLimits)
+    .value("block_to_hit_target", ps::LimitFPSMode::BlockToHitTarget)
+    .value("skip_frames_to_hit_target", ps::LimitFPSMode::SkipFramesToHitTarget)
+    ; 
   
   py::enum_<ps::GroundPlaneMode>(m, "GroundPlaneMode")
     .value("none", ps::GroundPlaneMode::None)
     .value("tile", ps::GroundPlaneMode::Tile)
     .value("tile_reflection", ps::GroundPlaneMode::TileReflection)
     .value("shadow_only", ps::GroundPlaneMode::ShadowOnly)
-    .export_values(); 
+    ; 
+  
+  py::enum_<ps::GroundPlaneHeightMode>(m, "GroundPlaneHeightMode")
+    .value("automatic", ps::GroundPlaneHeightMode::Automatic)
+    .value("manual", ps::GroundPlaneHeightMode::Manual)
+    ; 
   
   py::enum_<ps::TransparencyMode>(m, "TransparencyMode")
     .value("none", ps::TransparencyMode::None)
     .value("simple", ps::TransparencyMode::Simple)
     .value("pretty", ps::TransparencyMode::Pretty)
-    .export_values(); 
+    ; 
+    
+    py::enum_<ps::CurveNetworkElement>(m, "CurveNetworkElement")
+    .value("node", ps::CurveNetworkElement::NODE)
+    .value("edge", ps::CurveNetworkElement::EDGE)
+    ;
+
+    py::enum_<ps::MeshElement>(m, "MeshElement")
+    .value("vertex", ps::MeshElement::VERTEX)
+    .value("face", ps::MeshElement::FACE)
+    .value("edge", ps::MeshElement::EDGE)
+    .value("halfedge", ps::MeshElement::HALFEDGE)
+    .value("corner", ps::MeshElement::CORNER)
+    ; 
+
+  py::enum_<ps::MeshSelectionMode>(m, "MeshSelectionMode")
+    .value("auto", ps::MeshSelectionMode::Auto)
+    .value("vertices_only", ps::MeshSelectionMode::VerticesOnly)
+    .value("faces_only", ps::MeshSelectionMode::FacesOnly)
+    ; 
+
+    py::enum_<ps::VolumeMeshElement>(m, "VolumeMeshElement")
+    .value("vertex", ps::VolumeMeshElement::VERTEX)
+    .value("edge", ps::VolumeMeshElement::EDGE)
+    .value("face", ps::VolumeMeshElement::FACE)
+    .value("cell", ps::VolumeMeshElement::CELL)
+    ; 
+    
+    py::enum_<ps::VolumeGridElement>(m, "VolumeGridElement")
+    .value("node", ps::VolumeGridElement::NODE)
+    .value("cell", ps::VolumeGridElement::CELL)
+    ; 
   
   py::enum_<ps::PointRenderMode>(m, "PointRenderMode")
     .value("sphere", ps::PointRenderMode::Sphere)
     .value("quad", ps::PointRenderMode::Quad)
-    .export_values(); 
+    ; 
+  
+  py::enum_<ps::FilterMode>(m, "FilterMode")
+    .value("linear", ps::FilterMode::Linear)
+    .value("nearest", ps::FilterMode::Nearest)
+    ; 
   
   py::enum_<ps::ImageOrigin>(m, "ImageOrigin")
     .value("lower_left", ps::ImageOrigin::LowerLeft)
     .value("upper_left", ps::ImageOrigin::UpperLeft)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::MeshShadeStyle>(m, "MeshShadeStyle")
     .value("smooth", ps::MeshShadeStyle::Smooth)
     .value("flat", ps::MeshShadeStyle::Flat)
     .value("tri_flat", ps::MeshShadeStyle::TriFlat)
-    .export_values(); 
+    ; 
+  
+  py::enum_<ps::IsolineStyle>(m, "IsolineStyle")
+    .value("stripe", ps::IsolineStyle::Stripe)
+    .value("contour", ps::IsolineStyle::Contour)
+    ; 
   
   py::enum_<ps::ImplicitRenderMode>(m, "ImplicitRenderMode")
     .value("sphere_march", ps::ImplicitRenderMode::SphereMarch)
     .value("fixed_step", ps::ImplicitRenderMode::FixedStep)
-    .export_values(); 
+    ; 
   
   py::enum_<ps::ManagedBufferType>(m, "ManagedBufferType")
     .value(ps::typeName(ps::ManagedBufferType::Float   ).c_str(),   ps::ManagedBufferType::Float   )
@@ -526,20 +614,14 @@ PYBIND11_MODULE(polyscope_bindings, m) {
     .value(ps::typeName(ps::ManagedBufferType::UVec2   ).c_str(),   ps::ManagedBufferType::UVec2   )
     .value(ps::typeName(ps::ManagedBufferType::UVec3   ).c_str(),   ps::ManagedBufferType::UVec3   )
     .value(ps::typeName(ps::ManagedBufferType::UVec4   ).c_str(),   ps::ManagedBufferType::UVec4   )
-    .export_values(); 
+    ; 
   
   py::enum_<ps::DeviceBufferType>(m, "DeviceBufferType")
     .value("attribute", ps::DeviceBufferType::Attribute)
     .value("texture1d", ps::DeviceBufferType::Texture1d)
     .value("texture2d", ps::DeviceBufferType::Texture2d)
     .value("texture3d", ps::DeviceBufferType::Texture3d)
-    .export_values(); 
-
-  py::enum_<ps::SaveImageMode>(m, "SaveImageMode")
-    .value("RG1G2B", ps::SaveImageMode::RG1G2B)
-    .value("LMS_Q", ps::SaveImageMode::LMS_Q)
-    .value("four_gray", ps::SaveImageMode::FourGray)
-    .export_values();
+    ; 
 
   // === Mini bindings for a little bit of glm
   py::class_<glm::vec2>(m, "glm_vec2").
@@ -563,6 +645,13 @@ PYBIND11_MODULE(polyscope_bindings, m) {
         return std::tuple<float, float, float, float>(x[0], x[1], x[2], x[3]);
         });
   
+  py::class_<glm::ivec2>(m, "glm_ivec2").
+    def(py::init<int32_t, int32_t>())
+   .def("as_tuple",
+        [](const glm::ivec2& x) {
+        return std::tuple<int32_t, int32_t>(x[0], x[1]); 
+        });
+
   py::class_<glm::uvec3>(m, "glm_uvec3").
     def(py::init<uint32_t, uint32_t, uint32_t>())
    .def("as_tuple",
@@ -582,7 +671,7 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   bind_camera_view(m);
   bind_managed_buffer(m);
   bind_imgui(m);
-  bind_point_light(m);
+  bind_implot(m);
 
 }
 

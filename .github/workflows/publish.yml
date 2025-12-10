@@ -16,69 +16,42 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - runs-on: ubuntu-latest
-            cibw-arch: manylinux_x86_64
-          - runs-on: ubuntu-latest
-            cibw-arch: manylinux_i686
-          - runs-on: macos-latest
-            cibw-arch: macosx_x86_64
-          - runs-on: macos-latest
-            cibw-arch: macosx_arm64
-          - runs-on: macos-latest
-            cibw-arch: macosx_universal2
-          - runs-on: windows-latest
-            cibw-arch: win_amd64
-          - runs-on: windows-latest
-            cibw-arch: win32
-            python-arch: x86
+        # macos-13 is an intel runner, macos-14+ is apple silicon
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest]
 
-    name: Build wheels ${{ matrix.cibw-arch }}
-    runs-on: ${{ matrix.runs-on }}
-
-    env:
-      CIBW_BUILD_VERBOSITY: 3
-      CIBW_BEFORE_BUILD_LINUX : "yum remove -y cmake && python -m pip install cmake && yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-devel mesa-libGL-devel mesa-libGL libXi-devel freeglut-devel"
-      CIBW_SKIP: "cp313-*" # skip python 13 for now, builds failing
+    name: Build wheels ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-python@v3
-        name: Install Python
-        with:
-          python-version: '3.9'
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install cibuildwheel==2.20.0
-
-      - name: Configure cibuildwheel
-        shell: bash
-        run: |
-          CMAKE_ARCH="${{ matrix.cibw-arch == 'win32' && '-A Win32' || '' }}"
-          CMAKE_OSX_ARCHITECTURES=${{ matrix.cibw-arch == 'macosx_x86_64' && 'x86_64' || matrix.cibw-arch == 'macosx_arm64' && 'arm64' || matrix.cibw-arch == 'macosx_universal2' && '"arm64;x86_64"' || '' }}
-          echo "CIBW_ARCHS_MACOS=x86_64 arm64 universal2" >> $GITHUB_ENV
-          echo "CIBW_BUILD=*-${{ matrix.cibw-arch }}" >> $GITHUB_ENV
-          echo "CIBW_ENVIRONMENT_MACOS=CMAKE_OSX_ARCHITECTURES=\"$CMAKE_OSX_ARCHITECTURES\"" >> $GITHUB_ENV
       - name: Package source distribution
-        if: runner.os == 'Linux'
+        # make sure this only happens on one of the runners, not repeated on all
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          python setup.py sdist -d wheelhouse --formats=gztar 
+          python -m pip install build
+          python -m build --sdist
 
-      - name: Build wheels
-        run: |
-          python -m cibuildwheel --output-dir wheelhouse
+      - name: Run cibuildwheel
+        uses: pypa/cibuildwheel@v2.23.2
+        with:
+          config-file: ".github/workflows/cibuildwheel_config.toml"
+
+      - name: Copy source distribution into wheelhouse
+        if: matrix.os == 'ubuntu-latest'
+        run: mv dist/*.tar.gz wheelhouse/
 
       # Upload binaries to the github artifact store
-      - uses: actions/upload-artifact@v3
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
         with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: |
             ./wheelhouse/*.whl 
-            ./wheelhouse/*.tar.gz 
-
+            ./wheelhouse/*.tar.gz
+          overwrite: true
 
   # Push the resulting binaries to pypi on a tag starting with 'v'
   upload_pypi:
@@ -96,10 +69,21 @@ jobs:
       id-token: write
     steps:
       - name: Download built wheels artifact # downloads from the jobs storage from the previous step
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.2.1
         with:
-          name: artifact
+          # omitting the `name: ` field downloads all artifacts from this workflow
           path: dist
+
+      - name: List downloaded files from artifact
+        run: ls -lR dist
+
+        # dist directory has subdirs from the different jobs, merge them into one directory and delete
+        # the empty leftover dirs
+      - name: Flatten directory
+        run: find dist -mindepth 2 -type f -exec mv -t dist {} + && find dist -type d -empty -delete
+
+      - name: List downloaded files from artifact after flatten
+        run: ls -lR dist
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

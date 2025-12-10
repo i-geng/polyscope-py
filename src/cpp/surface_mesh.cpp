@@ -18,19 +18,32 @@ namespace ps = polyscope;
 void bind_surface_mesh(py::module& m) {
 
 
-  // == Helper quantity classes
+  // == Helper classes
+  py::class_<ps::SurfaceMeshPickResult>(m, "SurfaceMeshPickResult")
+   .def(py::init<>())
+   .def_readonly("element_type", &ps::SurfaceMeshPickResult::elementType)
+   .def_readonly("index", &ps::SurfaceMeshPickResult::index)
+   .def_readonly("bary_coords", &ps::SurfaceMeshPickResult::baryCoords)
+  ;
+
 
   // Scalar quantities
   bindScalarQuantity<ps::SurfaceVertexScalarQuantity>(m, "SurfaceVertexScalarQuantity");
   bindScalarQuantity<ps::SurfaceFaceScalarQuantity>(m, "SurfaceFaceScalarQuantity");
   bindScalarQuantity<ps::SurfaceEdgeScalarQuantity>(m, "SurfaceEdgeScalarQuantity");
   bindScalarQuantity<ps::SurfaceHalfedgeScalarQuantity>(m, "SurfaceHalfedgeScalarQuantity");
-  bindScalarQuantity<ps::SurfaceTextureScalarQuantity>(m, "SurfaceTextureScalarQuantity");
+  bindScalarQuantity<ps::SurfaceCornerScalarQuantity>(m, "SurfaceCornerScalarQuantity");
+  py::class_<ps::SurfaceTextureScalarQuantity> boundScalarQ = 
+     bindScalarQuantity<ps::SurfaceTextureScalarQuantity>(m, "SurfaceTextureScalarQuantity");
+  addTextureMapQuantityBindings<ps::SurfaceTextureScalarQuantity>(boundScalarQ);
 
   // Color quantities
   bindColorQuantity<ps::SurfaceVertexColorQuantity>(m, "SurfaceVertexColorQuantity");
   bindColorQuantity<ps::SurfaceFaceColorQuantity>(m, "SurfaceFaceColorQuantity");
-  bindColorQuantity<ps::SurfaceTextureColorQuantity>(m, "SurfaceTextureColorQuantity");
+  py::class_<ps::SurfaceTextureColorQuantity> boundColorQ = 
+     bindColorQuantity<ps::SurfaceTextureColorQuantity>(m, "SurfaceTextureColorQuantity");
+  addTextureMapQuantityBindings<ps::SurfaceTextureColorQuantity>(boundColorQ);
+
 
   // Tetracolor quantities
   bindTetracolorQuantity<ps::SurfaceVertexTetracolorQuantity>(m, "SurfaceVertexTetracolorQuantity");
@@ -93,12 +106,17 @@ void bind_surface_mesh(py::module& m) {
       .def("get_smooth_shade", &ps::SurfaceMesh::isSmoothShade, "Get if smooth shading is enabled")
       .def("set_shade_style", &ps::SurfaceMesh::setShadeStyle, "Set shading")
       .def("get_shade_style", &ps::SurfaceMesh::getShadeStyle, "Get shading")
+      .def("set_selection_mode", &ps::SurfaceMesh::setSelectionMode)
+      .def("get_selection_mode", &ps::SurfaceMesh::getSelectionMode)
       .def("set_material", &ps::SurfaceMesh::setMaterial, "Set material")
       .def("get_material", &ps::SurfaceMesh::getMaterial, "Get material")
       .def("set_back_face_policy", &ps::SurfaceMesh::setBackFacePolicy, "Set back face policy")
       .def("get_back_face_policy", &ps::SurfaceMesh::getBackFacePolicy, "Get back face policy")
       .def("set_back_face_color", &ps::SurfaceMesh::setBackFaceColor, "Set back face color")
       .def("get_back_face_color", &ps::SurfaceMesh::getBackFaceColor, "Get back face color")
+    
+      // picking
+      .def("interpret_pick_result", &ps::SurfaceMesh::interpretPickResult)
 
       // permutations & bases
       .def("set_edge_permutation", &ps::SurfaceMesh::setEdgePermutation<Eigen::VectorXi>, "Set edge permutation")
@@ -109,6 +127,11 @@ void bind_surface_mesh(py::module& m) {
       .def("mark_edges_as_used", &ps::SurfaceMesh::markEdgesAsUsed)
       .def("mark_halfedges_as_used", &ps::SurfaceMesh::markHalfedgesAsUsed)
       .def("mark_corners_as_used", &ps::SurfaceMesh::markCornersAsUsed)
+
+      // scalar transparency
+      .def("set_transparency_quantity", 
+          overload_cast_<std::string>()(&ps::SurfaceMesh::setTransparencyQuantity), py::arg("quantity_name"))
+      .def("clear_transparency_quantity", &ps::SurfaceMesh::clearTransparencyQuantity)
 
       // = quantities
 
@@ -124,6 +147,9 @@ void bind_surface_mesh(py::module& m) {
            py::arg("data_type") = ps::DataType::STANDARD, py::return_value_policy::reference)
       .def("add_halfedge_scalar_quantity", &ps::SurfaceMesh::addHalfedgeScalarQuantity<Eigen::VectorXf>,
            "Add a scalar function at halfedges", py::arg("name"), py::arg("values"),
+           py::arg("data_type") = ps::DataType::STANDARD, py::return_value_policy::reference)
+      .def("add_corner_scalar_quantity", &ps::SurfaceMesh::addCornerScalarQuantity<Eigen::VectorXf>,
+           "Add a scalar function at corners", py::arg("name"), py::arg("values"),
            py::arg("data_type") = ps::DataType::STANDARD, py::return_value_policy::reference)
       .def("add_texture_scalar_quantity",
            overload_cast_<std::string, std::string, size_t, size_t, const Eigen::VectorXf&, ps::ImageOrigin,
