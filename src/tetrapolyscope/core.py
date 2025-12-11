@@ -560,6 +560,14 @@ def set_transparency_mode(mode_str):
 def set_transparency_render_passes(n):
     psb.set_transparency_render_passes(n)
 
+
+def set_transparency_peel_epsilon(eps):
+    psb.set_transparency_peel_epsilon(eps)
+
+
+def get_transparency_peel_epsilon():
+    return psb.get_transparency_peel_epsilon()
+
 # Rendering
 
 

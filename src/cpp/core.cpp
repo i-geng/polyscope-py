@@ -302,6 +302,8 @@ PYBIND11_MODULE(polyscope_bindings, m) {
   // === Transparency
   m.def("set_transparency_mode", [](ps::TransparencyMode x) { ps::options::transparencyMode = x; });
   m.def("set_transparency_render_passes", [](int n) { ps::options::transparencyRenderPasses = n; });
+  m.def("set_transparency_peel_epsilon", [](float eps) { ps::options::transparencyPeelEpsilon = eps; });
+  m.def("get_transparency_peel_epsilon", []() { return ps::options::transparencyPeelEpsilon; });
   
   // === Materials
   m.def("load_static_material", ps::loadStaticMaterial, "Load a static material");
